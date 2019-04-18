@@ -1,16 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Lab1
+public class ManagementCompany
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
 
-        }
+}
+public class Immovables
+{
+    int AverageNumber()
+    {
+
+    }
+}
+
+public class Residential : Immovables
+{
+
+}
+
+public class NonResidential : Immovables
+
+{
+
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+
     }
 }
