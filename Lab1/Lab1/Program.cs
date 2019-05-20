@@ -53,27 +53,28 @@ class Program
 {
     static void Main(string[] args)
     {
-        Residential r = new Residential();
-        Console.WriteLine("Select type immovables");
-        Console.WriteLine("1) residential");
-        Console.WriteLine("2) non-residential");
-        int choose = int.Parse(Console.ReadLine());
-        Console.WriteLine("Enter the address in the format st. number");
-        string address = Console.ReadLine();
+        //Residential r = new Residential();
+        //Console.WriteLine("Select type immovables");
+        //Console.WriteLine("1) residential");
+        //Console.WriteLine("2) non-residential");
+        //int choose = int.Parse(Console.ReadLine());
+        //Console.WriteLine("Enter the address in the format st. number");
+        //string address = Console.ReadLine();
 
-        switch (choose)
-        {
-            case 1:
-                Console.WriteLine("Enter the number of apartments and rooms in them");
-                int NumbeOfApartments = int.Parse(Console.ReadLine()), NumbeOfRooms = int.Parse(Console.ReadLine());
-                r = new Residential(NumbeOfApartments, NumbeOfRooms, address);
-                break;
-            case 2:
-                break;
-            default:
-                break;
-        }
-        Console.WriteLine(r.AverageAmount());
+        //switch (choose)
+        //{
+        //    case 1:
+        //        Console.WriteLine("Enter the number of apartments and rooms in them");
+        //        int NumbeOfApartments = int.Parse(Console.ReadLine()), NumbeOfRooms = int.Parse(Console.ReadLine());
+        //        r = new Residential(NumbeOfApartments, NumbeOfRooms, address);
+        //        break;
+        //    case 2:
+        //        break;
+        //    default:
+        //        break;
+        //}
+        //Console.WriteLine(r.AverageAmount());
+
         Console.ReadKey();
     }
 }
