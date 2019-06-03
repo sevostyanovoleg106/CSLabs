@@ -6,15 +6,26 @@ using System.Collections.Generic;
 
 namespace Lab2
 {
+    class ContactInformation
+    {
+        public string adress { get; set; }
+        public string phone { get; set; }
+       public ContactInformation( string adress, string phone)
+       {
+
+            this.adress = adress;
+            this.phone = phone;
+       }
+    }
     class Link : IComparable
     {
         public bool isRoot { get; set; }
         public bool isExternal { get; set; }
-        public bool isHttps { get; set; }   // "https"
-        public bool hasWWW { get; set; }    // "www"
-        public string rootURI { get; set; } // "sitename"
-        public string domain { get; set; }  // "com"
-        public string bodyURI { get; set; } // "page_1/page_2/.../page_n"
+        public bool isHttps { get; set; }
+        public bool hasWWW { get; set; }
+        public string rootURI { get; set; }
+        public string domain { get; set; }
+        public string bodyURI { get; set; }
         public int depth { get; set; }
 
         public Link()
@@ -88,16 +99,16 @@ namespace Lab2
             if (i >= 0)
             {
                 if (hasWWW)
-                    i += 6; //skip "//www."
+                    i += 6;
                 else
-                    i += 2; //skip "//"
+                    i += 2;
 
                 List<char> root = new List<char>();
                 int n = link.LastIndexOf(".");
                 int s = link.IndexOf("/", i);
 
                 if (s >= 0 && s < n)
-                    n = link.IndexOf(".", link.IndexOf(".") + 1); // www.(1)sitename.(2)com/...
+                    n = link.IndexOf(".", link.IndexOf(".") + 1);
                 while (i < n)
                 {
                     root.Add(link[i]);
@@ -216,8 +227,9 @@ namespace Lab2
         static SortedSet<Link> visitedLinks;
         static Stack<Link> currentPath;
         private string currentPage;
+        private ContactInformation contact;
         public Link root { set; get; }
-        public delegate void searchResult(Stack<Link> result);
+        public delegate void searchResult(Stack<Link> result, ContactInformation ci);
         public event searchResult onTarget;
 
         public Analyzer(string _root)
@@ -236,12 +248,8 @@ namespace Lab2
             try
             {
                 currentPage = client.DownloadString(new Uri(link.ToString()));
-                string currentPage1 = client.DownloadString(new Uri(link.ToString()));
                 MatchCollection matches = Regex.Matches(currentPage, @"<a href=[""\/\w-\.:]+>");
-                MatchCollection matches1 = Regex.Matches(currentPage1, @"(^\+\d{1,2})?((\(\d{3}\))|(\-?\d{3}\-)|(\d{3}))((\d{3}\-\d{4})|(\d{3}\-\d\d\-\d\d)|(\d{7})|(\d{3}\-\d\-\d{3}))");
-                Console.WriteLine(currentPage1);
-                for (int i = 0; i < matches1.Count; i++)
-                    Console.WriteLine(matches1[i]);
+
                 int size = matches.Count;
                 for (int i = 0; i < size; i++)
                 {
@@ -256,6 +264,42 @@ namespace Lab2
             {
                 Console.WriteLine(ex.Message);
                 return links;
+            }
+        }
+        public List<ContactInformation> findContactInformation(Link link)
+        {
+            List<ContactInformation> info = new List<ContactInformation>();
+            try
+            {
+                currentPage = client.DownloadString(new Uri(link.ToString()));
+                MatchCollection matches = Regex.Matches(currentPage, @"(8|\+7)?(\s)[\(](\d{3})[\)](\s)(\d{3})[\-](\d{2})[\-](\d{2})");
+                MatchCollection matches2 = Regex.Matches(currentPage, @"/contact/(.*?)/susu/ru>"); 
+              
+                int max;
+                if (matches.Count > matches2.Count)
+                    max = matches.Count;    
+                else
+                    max = matches2.Count;
+                for (int i = 0; i < matches.Count; i++)
+                    Console.WriteLine(matches[i]);
+                for (int i = 0; i< matches2.Count; i++)
+                {                 
+                    Console.Write(matches2[i].Groups[1]);
+                    Console.WriteLine("@susu.ru");
+                }
+                for (int i = 0; i < max; i++)
+                {
+                    if(matches.Count > i)
+                    info.Add(new ContactInformation(matches2[i].ToString(), matches[i].ToString()));
+                    else
+                        info.Add(new ContactInformation(matches2[i].ToString(), matches[matches.Count - 1].ToString()));
+                }
+                return info;
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return info;
             }
         }
         private string htmlLinkToURI(string htmlLink)
@@ -307,12 +351,13 @@ namespace Lab2
                 visitedLinks.Add(thisLink);
 
                 List<Link> links = findLinksOnPage(thisLink, depth + 1);
+                List<ContactInformation> info = findContactInformation(thisLink);
                 List<Link> external = findExternalLinks(links);
                 if (external.Count != 0)
                     foreach (Link link in external)
                     {
                         currentPath.Push(link);
-                        onTarget(currentPath);
+                        onTarget(currentPath, contact);
                         currentPath.Pop();
                     }
 
@@ -345,7 +390,7 @@ namespace Lab2
             w.Close();
         }
     }
-       
+
     class AnalyzerHandler
     {
         string fileName;
@@ -355,7 +400,7 @@ namespace Lab2
             fileName = _csvFileName;
         }
 
-        public void writeLinkCsv(Stack<Link> path)
+        public void writeLinkCsv(Stack<Link> path, ContactInformation ci)
         {
             FileStream file = new FileStream(fileName, FileMode.Append, FileAccess.Write);
             StreamWriter w = new StreamWriter(file);
@@ -374,7 +419,7 @@ namespace Lab2
             w.Close();
         }
 
-        public void writeLinkConsole(Stack<Link> path)
+        public void writeLinkConsole(Stack<Link> path, ContactInformation ci)
         {
             List<Link> links = new List<Link>(path);
             links.Reverse();
@@ -401,7 +446,7 @@ namespace Lab2
             a.onTarget += h.writeLinkCsv;
 
             a.recSearch(a.root, 10, 100, 0);
-            Console.WriteLine("---END---");
+            Console.WriteLine("--------------------------------------------------------------------------------END---------------------------------------------------------------------------------");
             a.visitedLinksCsvOut("visitedLinks.csv");
             Console.ReadKey();
         }
